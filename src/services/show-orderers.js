@@ -86,46 +86,30 @@ function getShowShuffler(show) {
         });
         let n = sortedPrograms.length;
 
-        let splitPrograms = [];
         let randomPrograms = [];
-
         for (let i = 0; i < n; i++) {
-            splitPrograms.push( sortedPrograms[i] );
-            randomPrograms.push( {} );
+            randomPrograms.push( sortedPrograms[i] );
         }
-
-     
-        let showId = getShowData(show.programs[0]).showId;
 
         let position = show.founder.shuffleOrder;
         if (typeof(position) === 'undefined') {
-            position = 0;
+            position = random.integer(0, n - 1);
         }
 
         let localRandom = null;
 
-        let initGeneration = (generation) => {
-            let seed = [];
-            for (let i = 0 ; i < show.showId.length; i++) {
-                seed.push( showId.charCodeAt(i) );
-            }
-            seed.push(generation);
-
-            localRandom = new Random( randomJS.MersenneTwister19937.seedWithArray(seed) )
-
-            if (generation == 0) {
-                shuffle( splitPrograms, 0, n , localRandom );
-            }
+        let initGeneration = () => {
+            localRandom = new Random( randomJS.MersenneTwister19937.autoSeed() );
             for (let i = 0; i < n; i++) {
-                randomPrograms[i] = splitPrograms[i];
+                randomPrograms[i] = sortedPrograms[i];
             }
-            let a = Math.floor(n / 2);
-            shuffle( randomPrograms, 0, a,  localRandom );
-            shuffle( randomPrograms, a, n,  localRandom );
+            shuffle( randomPrograms, 0, n,  localRandom );
         };
-        initGeneration(0);
         let generation = Math.floor( position / n );
-        initGeneration( generation );
+        for (let i = 0; i <= generation; i++) {
+            initGeneration();
+        }
+        position = position % n;
         
         show.shuffler  = {
 
@@ -140,9 +124,12 @@ function getShowShuffler(show) {
             next: () => {
                 position++;
                 if (position % n == 0) {
-                    let generation = Math.floor( position / n );
-                    initGeneration( generation );
+                    initGeneration();
                 }
+            },
+
+            getPosition: () => {
+                return position;
             },
 
         }

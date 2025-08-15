@@ -336,6 +336,11 @@ module.exports = async( programs, schedule  ) => {
         pushFlex( schedule.period - m);
     }
 
+    for (let i = 0; i < shows.length; i++) {
+        if (typeof(shows[i].shuffler) !== 'undefined') {
+            shows[i].founder.shuffleOrder = orderers.getShowShuffler(shows[i]).getPosition();
+        }
+    }
 
     return {
         programs: p,
